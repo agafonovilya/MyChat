@@ -23,7 +23,7 @@
     <bytecodeTargetLevel>
       <module name="chat" target="1.5" />
       <module name="chat-client" target="8" />
-      <module name="chat-server" target="7" />
+      <module name="chat-server" target="8" />
       <module name="MyChat" target="1.5" />
       <module name="TEST" target="1.5" />
     </bytecodeTargetLevel>

@@ -1,4 +1,6 @@
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ListView;
@@ -21,8 +23,9 @@ import javafx.scene.input.MouseEvent;
 
 public class Controller implements Initializable {
 
+    ObservableList<String> test = FXCollections.observableArrayList();
     @FXML
-    public ListView<String> outputField;
+    public ListView<String> outputField = new ListView<String>(test);
     @FXML
     public TextField entryField;
     @FXML
@@ -64,19 +67,18 @@ public class Controller implements Initializable {
                 e.printStackTrace();
             }
 
-            Date date = new Date();
-            SimpleDateFormat formatOfDate = new SimpleDateFormat("yy.MM.dd HH:mm:ss");
-            outputField.getItems().addAll(formatOfDate.format(date) + " " + entryField.getText());
+                Date date = new Date();
+                SimpleDateFormat formatOfDate = new SimpleDateFormat("yy.MM.dd HH:mm:ss");
+                outputField.getItems().addAll(formatOfDate.format(date) + " " + entryField.getText());
 
-            entryField.clear();
-            entryField.requestFocus();
+                entryField.clear();
+                entryField.requestFocus();
         }
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         entryField.requestFocus();
-
 
         try{
             socket = new Socket("localhost", 8189);
@@ -99,12 +101,17 @@ public class Controller implements Initializable {
                             }
 
                             if (message.startsWith("/deleteFromListOfMembers ")){
-                                // TODO: 11.05.2020 Реализовать удаление отключившихся пользователей
-
+                                String finalMessage2 = message;
+                                Platform.runLater(()->{
+                                listOfMembers.getItems().remove(finalMessage2.substring(25));
+                                });
                             }
 
                             if (message.startsWith("/addToListOfMembers ")) {
-                                listOfMembers.getItems().addAll(message.substring(20));
+                                String finalMessage1 = message;
+                                Platform.runLater(()->{
+                                listOfMembers.getItems().addAll(finalMessage1.substring(20));
+                                });
                             }
 
                         } else { //иначе принимаем как обычное сообщение
