@@ -1,3 +1,5 @@
+import javafx.application.Platform;
+import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
@@ -19,13 +21,17 @@ import javafx.scene.input.MouseEvent;
 
 public class Controller implements Initializable {
 
+    @FXML
     public ListView<String> outputField;
+    @FXML
     public TextField entryField;
+    @FXML
     public ListView<String> listOfMembers;
 
     private Socket socket;
     private DataInputStream in;
     private DataOutputStream out;
+
 
     /**
      * Обработка нажатия на клавишу "Send".
@@ -94,6 +100,7 @@ public class Controller implements Initializable {
 
                             if (message.startsWith("/deleteFromListOfMembers ")){
                                 // TODO: 11.05.2020 Реализовать удаление отключившихся пользователей
+
                             }
 
                             if (message.startsWith("/addToListOfMembers ")) {
@@ -103,11 +110,15 @@ public class Controller implements Initializable {
                         } else { //иначе принимаем как обычное сообщение
                             Date date = new Date();
                             SimpleDateFormat formatOfDate = new SimpleDateFormat("yy.MM.dd HH:mm:ss");
-                            //String mes = formatOfDate.format(date) + " " + message + "\n";
-                            outputField.getItems().addAll(formatOfDate.format(date) + " " + message);
+
+                            String finalMessage = message;
+                            Platform.runLater(()->{
+                                outputField.getItems().addAll(formatOfDate.format(date) + " " + finalMessage);
+                            });
                         }
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        outputField.getItems().addAll("Потеря связи с сервером");
+                        break;
                     }
 
                 }
