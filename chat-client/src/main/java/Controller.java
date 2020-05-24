@@ -1,19 +1,39 @@
-import javafx.scene.control.Button;
-import javafx.scene.control.TextArea;
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.ResourceBundle;
 
 import javafx.event.ActionEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 
-public class Controller {
 
-    public TextArea outputField;
+public class Controller implements Initializable {
+
+    ObservableList<String> test = FXCollections.observableArrayList();
+    @FXML
+    public ListView<String> outputField = new ListView<String>(test);
+    @FXML
     public TextField entryField;
+    @FXML
+    public ListView<String> listOfMembers;
 
+    private Socket socket;
+    private DataInputStream in;
+    private DataOutputStream out;
 
 
     /**
@@ -21,7 +41,7 @@ public class Controller {
      * @param actionEvent
      */
     public void clickSend(ActionEvent actionEvent) {
-        messageRecording();
+        sendMessage();
     }
 
     /**
@@ -30,20 +50,95 @@ public class Controller {
      */
     public void keyListener(KeyEvent keyEvent) {
         if (keyEvent.getCode().equals(KeyCode.ENTER) ) {
-            messageRecording();
+            sendMessage();
         }
     }
 
     /**
-     * Метод переносит сообщение из поля ввода в поле переписки, добавляя к нему текущие дату и время.
+     * Метод отправляет сообщение на сервер.
+     * Затем переносит сообщение из поля ввода в поле переписки, добавляя к нему текущие дату и время.
      */
-    private void messageRecording() {
+    private void sendMessage() {
         if (!entryField.getText().equals("")) {
-            Date date = new Date();
-            SimpleDateFormat formatOfDate = new SimpleDateFormat("yy.MM.dd HH:mm:ss");
-            outputField.appendText(formatOfDate.format(date) + " " + entryField.getText() + "\n");
-            entryField.clear();
+            try {
+                out.writeUTF(entryField.getText());
+                out.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+                Date date = new Date();
+                SimpleDateFormat formatOfDate = new SimpleDateFormat("yy.MM.dd HH:mm:ss");
+                outputField.getItems().addAll(formatOfDate.format(date) + " " + entryField.getText());
+
+                entryField.clear();
+                entryField.requestFocus();
         }
     }
 
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        entryField.requestFocus();
+
+        try{
+            socket = new Socket("localhost", 8189);
+            in = new DataInputStream(socket.getInputStream());
+            out = new DataOutputStream(socket.getOutputStream());
+            boolean running = true;
+
+            Thread thread = new Thread(()->{
+                String message;
+
+                while (running) {
+                    try {
+                        message = in.readUTF();
+
+                        if (message.startsWith("/")) { //распознаем сообщения с командами
+                            if (message.equals("/exit")) {
+                                in.close();
+                                out.close();
+                                break;
+                            }
+
+                            if (message.startsWith("/deleteFromListOfMembers ")){
+                                String finalMessage2 = message;
+                                Platform.runLater(()->{
+                                listOfMembers.getItems().remove(finalMessage2.substring(25));
+                                });
+                            }
+
+                            if (message.startsWith("/addToListOfMembers ")) {
+                                String finalMessage1 = message;
+                                Platform.runLater(()->{
+                                listOfMembers.getItems().addAll(finalMessage1.substring(20));
+                                });
+                            }
+
+                        } else { //иначе принимаем как обычное сообщение
+                            Date date = new Date();
+                            SimpleDateFormat formatOfDate = new SimpleDateFormat("yy.MM.dd HH:mm:ss");
+
+                            String finalMessage = message;
+                            Platform.runLater(()->{
+                                outputField.getItems().addAll(formatOfDate.format(date) + " " + finalMessage);
+                            });
+                        }
+                    } catch (IOException e) {
+                        outputField.getItems().addAll("Потеря связи с сервером");
+                        break;
+                    }
+
+                }
+            });
+            thread.setDaemon(true);
+            thread.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void clickToMember(MouseEvent mouseEvent) {
+        // TODO: 11.05.2020 По нажатии на имя участника в списке участников,
+        //  добавлять его имя в поле ввода для отправки приватных сообщений
+    }
 }

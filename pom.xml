@@ -13,5 +13,11 @@
         <module>chat-client</module>
     </modules>
 
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <source>8</source>
+        <target>8</target>
+    </properties>
 
 </project>

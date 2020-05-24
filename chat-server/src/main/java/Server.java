@@ -6,7 +6,6 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 public class Server {
 
     private final static int PORT = 8189;
-    private final static String HOST = "localhost";
     private static int cnt = 1;
 
     private boolean running;
@@ -19,11 +18,11 @@ public class Server {
     public Server(int port) {
         running = true;
         clients = new ConcurrentLinkedDeque<>();
-        try (ServerSocket srv = new ServerSocket(PORT)) {
+        try (ServerSocket srv = new ServerSocket(port)) {
             System.out.println("Server started!");
             while (running) {
                 Socket socket = srv.accept();
-                ClientHandler client = new ClientHandler(socket, "client #" + cnt);
+                ClientHandler client = new ClientHandler(socket, "client_" + cnt);
                 cnt++;
                 clients.add(client); // can produce CME (concurrent modification exception)
                 System.out.println(client.getNickName() + " accepted!");
