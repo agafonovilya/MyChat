@@ -70,7 +70,6 @@ public class Controller implements Initializable {
                 Date date = new Date();
                 SimpleDateFormat formatOfDate = new SimpleDateFormat("yy.MM.dd HH:mm:ss");
                 outputField.getItems().addAll(formatOfDate.format(date) + " " + entryField.getText());
-
                 entryField.clear();
                 entryField.requestFocus();
         }
