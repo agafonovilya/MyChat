@@ -1,2 +1,4 @@
+Network.class
+ChatController.class
+AuthorizationController.class
 Client.class
-Controller.class

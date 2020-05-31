@@ -34,7 +34,10 @@ public class ClientHandler implements Runnable {
      * @throws IOException
      */
     public synchronized void welcome() throws IOException {
-        for (ClientHandler client : Server.getClients()) {
+
+
+
+        for (ClientHandler client : AuthService.getClients()) {
             client.sendMessage("/addToListOfMembers " + this.nickName);
             this.sendMessage("/addToListOfMembers " + client.getNickName());
         }
@@ -47,8 +50,8 @@ public class ClientHandler implements Runnable {
      * @throws IOException
      */
     private void sendCommandToDelete() throws IOException {
-        Server.getClients().remove(this);
-        for (ClientHandler client : Server.getClients()) {
+        AuthService.getClients().remove(this);
+        for (ClientHandler client : AuthService.getClients()) {
             client.sendMessage("/deleteFromListOfMembers " + this.nickName);
         }
     }
@@ -59,7 +62,7 @@ public class ClientHandler implements Runnable {
      * @throws IOException
      */
     public synchronized void broadCastMessage(String message) throws IOException {
-        for (ClientHandler client : Server.getClients()) {
+        for (ClientHandler client : AuthService.getClients()) {
             if (!client.equals(this)) {
                 client.sendMessage(this.nickName + "> " + message);
            }
@@ -73,7 +76,7 @@ public class ClientHandler implements Runnable {
      * @throws IOException
      */
     public synchronized void privateMessage(String message, String nick) throws IOException {
-        for (ClientHandler client : Server.getClients()) {
+        for (ClientHandler client : AuthService.getClients()) {
             if (nick.equals(client.getNickName())) {
                 client.sendMessage("#" + this.nickName + " " + message);
             }
