@@ -6,14 +6,15 @@ import javafx.stage.Stage;
 
 public class Client extends Application {
 
+    public static Network network;
+
     @Override
     public void start(Stage primaryStage) throws Exception{
-        Parent root = FXMLLoader.load(getClass().getResource("chat-client.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("authorization.fxml"));
         primaryStage.setTitle("MyChat");
-        primaryStage.setScene(new Scene(root) );
+        primaryStage.setScene(new Scene(root));
         primaryStage.show();
     }
-
 
     public static void main(String[] args) {
         launch(args);

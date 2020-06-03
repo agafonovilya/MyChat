@@ -21,7 +21,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 
 
-public class Controller implements Initializable {
+public class ChatController implements Initializable {
 
     ObservableList<String> test = FXCollections.observableArrayList();
     @FXML
@@ -31,10 +31,14 @@ public class Controller implements Initializable {
     @FXML
     public ListView<String> listOfMembers;
 
-    private Socket socket;
+   /* private Socket socket;
     private DataInputStream in;
-    private DataOutputStream out;
+    private DataOutputStream out;*/
 
+    private Network network = Client.network;
+    private Socket socket = network.socket;
+    private DataInputStream in = network.in;
+    private DataOutputStream out = network.out;
 
     /**
      * Обработка нажатия на клавишу "Send".
@@ -70,7 +74,6 @@ public class Controller implements Initializable {
                 Date date = new Date();
                 SimpleDateFormat formatOfDate = new SimpleDateFormat("yy.MM.dd HH:mm:ss");
                 outputField.getItems().addAll(formatOfDate.format(date) + " " + entryField.getText());
-
                 entryField.clear();
                 entryField.requestFocus();
         }
@@ -80,61 +83,64 @@ public class Controller implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         entryField.requestFocus();
 
-        try{
-            socket = new Socket("localhost", 8189);
-            in = new DataInputStream(socket.getInputStream());
-            out = new DataOutputStream(socket.getOutputStream());
-            boolean running = true;
+        /*socket = new Socket("localhost", 8189);
+        in = new DataInputStream(socket.getInputStream());
+        out = new DataOutputStream(socket.getOutputStream());*/
+        network = Client.network;
+        socket = network.socket;
+        in = network.in;
+        out = network.out;
 
-            Thread thread = new Thread(()->{
-                String message;
+        // TODO: 31.05.2020 удалить переменную running
+        boolean running = true;
 
-                while (running) {
-                    try {
-                        message = in.readUTF();
+        Thread thread = new Thread(()->{
+            String message;
 
-                        if (message.startsWith("/")) { //распознаем сообщения с командами
-                            if (message.equals("/exit")) {
-                                in.close();
-                                out.close();
-                                break;
-                            }
+            while (running) {
+                try {
+                    message = in.readUTF();
 
-                            if (message.startsWith("/deleteFromListOfMembers ")){
-                                String finalMessage2 = message;
-                                Platform.runLater(()->{
-                                listOfMembers.getItems().remove(finalMessage2.substring(25));
-                                });
-                            }
+                    if (message.startsWith("/")) { //распознаем сообщения с командами
+                        if (message.equals("/exit")) {
+                            in.close();
+                            out.close();
+                            break;
+                        }
 
-                            if (message.startsWith("/addToListOfMembers ")) {
-                                String finalMessage1 = message;
-                                Platform.runLater(()->{
-                                listOfMembers.getItems().addAll(finalMessage1.substring(20));
-                                });
-                            }
-
-                        } else { //иначе принимаем как обычное сообщение
-                            Date date = new Date();
-                            SimpleDateFormat formatOfDate = new SimpleDateFormat("yy.MM.dd HH:mm:ss");
-
-                            String finalMessage = message;
+                        if (message.startsWith("/deleteFromListOfMembers ")){
+                            String finalMessage2 = message;
                             Platform.runLater(()->{
-                                outputField.getItems().addAll(formatOfDate.format(date) + " " + finalMessage);
+                            listOfMembers.getItems().remove(finalMessage2.substring(25));
                             });
                         }
-                    } catch (IOException e) {
-                        outputField.getItems().addAll("Потеря связи с сервером");
-                        break;
-                    }
 
+                        if (message.startsWith("/addToListOfMembers ")) {
+                            String finalMessage1 = message;
+                            Platform.runLater(()->{
+                            listOfMembers.getItems().addAll(finalMessage1.substring(20));
+                            });
+                        }
+
+                    } else { //иначе принимаем как обычное сообщение
+                        Date date = new Date();
+                        SimpleDateFormat formatOfDate = new SimpleDateFormat("yy.MM.dd HH:mm:ss");
+
+                        String finalMessage = message;
+                        Platform.runLater(()->{
+                            outputField.getItems().addAll(formatOfDate.format(date) + " " + finalMessage);
+                        });
+                    }
+                } catch (IOException e) {
+                    outputField.getItems().addAll("Потеря связи с сервером");
+                    break;
                 }
-            });
-            thread.setDaemon(true);
-            thread.start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
+            }
+        });
+        thread.setDaemon(true);
+        thread.start();
+
     }
 
     public void clickToMember(MouseEvent mouseEvent) {
