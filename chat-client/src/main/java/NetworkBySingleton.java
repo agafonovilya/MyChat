@@ -39,7 +39,6 @@ public class NetworkBySingleton {
     }
 
     public DataOutputStream getOutputStream() {
-        System.out.println("точка");
         return outputStream;
     }
 
