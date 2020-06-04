@@ -108,7 +108,6 @@ public class ClientHandler implements Runnable {
                         splitClientMessage[0] = splitClientMessage[0].substring(1);//удаляем @
                         privateMessage(splitClientMessage[1], splitClientMessage[0]);
                     } else {
-                        System.out.println(clientMessage);
                         broadCastMessage(clientMessage);
                     }
 

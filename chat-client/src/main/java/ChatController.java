@@ -21,7 +21,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 
 
-public class Controller implements Initializable {
+public class ChatController implements Initializable {
 
     ObservableList<String> test = FXCollections.observableArrayList();
     @FXML
@@ -31,7 +31,7 @@ public class Controller implements Initializable {
     @FXML
     public ListView<String> listOfMembers;
 
-    private Socket socket;
+    private static NetworkBySingleton network = NetworkBySingleton.getInstance();
     private DataInputStream in;
     private DataOutputStream out;
 
@@ -79,61 +79,58 @@ public class Controller implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         entryField.requestFocus();
 
-        try{
-            socket = new Socket("localhost", 8189);
-            in = new DataInputStream(socket.getInputStream());
-            out = new DataOutputStream(socket.getOutputStream());
-            boolean running = true;
+        //network.connect("localhost", 8189); //удалить когда будет переход на окно авторизации
+        in = network.getInputStream();
+        out = network.getOutputStream();
 
-            Thread thread = new Thread(()->{
-                String message;
+        boolean running = true;
 
-                while (running) {
-                    try {
-                        message = in.readUTF();
+        Thread thread = new Thread(()->{
+            String message;
 
-                        if (message.startsWith("/")) { //распознаем сообщения с командами
-                            if (message.equals("/exit")) {
-                                in.close();
-                                out.close();
-                                break;
-                            }
+            while (running) {
+                try {
+                    message = in.readUTF();
 
-                            if (message.startsWith("/deleteFromListOfMembers ")){
-                                String finalMessage2 = message;
-                                Platform.runLater(()->{
-                                listOfMembers.getItems().remove(finalMessage2.substring(25));
-                                });
-                            }
+                    if (message.startsWith("/")) { //распознаем сообщения с командами
+                        if (message.equals("/exit")) {
+                            in.close();
+                            out.close();
+                            break;
+                        }
 
-                            if (message.startsWith("/addToListOfMembers ")) {
-                                String finalMessage1 = message;
-                                Platform.runLater(()->{
-                                listOfMembers.getItems().addAll(finalMessage1.substring(20));
-                                });
-                            }
-
-                        } else { //иначе принимаем как обычное сообщение
-                            Date date = new Date();
-                            SimpleDateFormat formatOfDate = new SimpleDateFormat("yy.MM.dd HH:mm:ss");
-
-                            String finalMessage = message;
+                        if (message.startsWith("/deleteFromListOfMembers ")){
+                            String finalMessage2 = message;
                             Platform.runLater(()->{
-                                outputField.getItems().addAll(formatOfDate.format(date) + " " + finalMessage);
+                            listOfMembers.getItems().remove(finalMessage2.substring(25));
                             });
                         }
-                    } catch (IOException e) {
-                        outputField.getItems().addAll("Потеря связи с сервером");
-                        break;
-                    }
 
+                        if (message.startsWith("/addToListOfMembers ")) {
+                            String finalMessage1 = message;
+                            Platform.runLater(()->{
+                            listOfMembers.getItems().addAll(finalMessage1.substring(20));
+                            });
+                        }
+
+                    } else { //иначе принимаем как обычное сообщение
+                        Date date = new Date();
+                        SimpleDateFormat formatOfDate = new SimpleDateFormat("yy.MM.dd HH:mm:ss");
+
+                        String finalMessage = message;
+                        Platform.runLater(()->{
+                            outputField.getItems().addAll(formatOfDate.format(date) + " " + finalMessage);
+                        });
+                    }
+                } catch (IOException e) {
+                    outputField.getItems().addAll("Потеря связи с сервером");
+                    break;
                 }
-            });
-            thread.setDaemon(true);
-            thread.start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
+            }
+        });
+        thread.setDaemon(true);
+        thread.start();
     }
 
     public void clickToMember(MouseEvent mouseEvent) {
