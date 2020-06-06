@@ -1,4 +1,4 @@
-Network.class
 ChatController.class
 AuthorizationController.class
 Client.class
+NetworkBySingleton.class
